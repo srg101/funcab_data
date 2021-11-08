@@ -25,9 +25,8 @@ fundat <- read.delim("./data/NDVI_FunCaB_2019.csv", fileEncoding = "UTF-8",
 # Check site names
 unique(fundat$Site)
 # Clean the site names, Norwegian language read-in issue.
-fundat %>%
-  mutate(siteID = recode(Site, "Gudmesdalen" = "Gudmedalen"))
-,
+fundat$siteID <- recode(fundat$Site,
+                      'Gudmesdalen' = "Gudmedalen",
                       'Låvisdalen' = "Lavisdalen",
                       'Rambæra' = "Rambera",
                       'Ulvehaugen' = "Ulvehaugen",
@@ -39,10 +38,7 @@ fundat %>%
                       'Øvstedal' = "Ovstedalen",
                       'Vikesland' = "Vikesland",
                       'Veskre' = "Veskre")
-
-# Check Block and Site ID's
-fundat$blocksite <- paste(fundat$siteID, fundat$Block)
-unique(fundat$blocksite)
+unique(fundat$siteID)
 
 # Turn Site names into Site Codes to merge with block ID's later on
 fundat$Site_Code<- recode(fundat$siteID,
@@ -60,10 +56,11 @@ fundat$Site_Code<- recode(fundat$siteID,
                             'Veskre' = "Ves")
 
 # Create new blockID with concatenated Site_Code and Block number
-fundat$blockID <- paste(fundat$Site_Code, fundat$Block)
+fundat$blockID <- paste0(fundat$Site_Code, fundat$Block)
+unique(fundat$blockID)
 
 # Standardize dates to data dictionary
-fundat$datcor <- as.Date(fundat$Date, "%m/%d/%y")
+fundat$date <- as.Date(fundat$Date, "%m/%d/%y")
 
 # For each plot we took two reflectance values, perpindicular to each other to account for the different radius for the greenseeker sensor area, and the 25cm plot size. Average these.
 fundat$m_ndvi <- (fundat$Value1+ fundat$Value2)/2 # average the two values
@@ -71,12 +68,15 @@ fundat$m_ndvi <- (fundat$Value1+ fundat$Value2)/2 # average the two values
 # Check distributon of new NDVI values
 hist(logit(fundat$m_ndvi))
 
+# Add column to specify when reflectance was taken relative to cutting
+fundat$pre_post_cut <- "post_cut"
 
+# Remove columns no longer required
+NDVI_2019 <- fundat %>%
+  select(siteID, blockID, Treatment, TTC_ID, pre_post_cut,
+         date, Time, m_ndvi, notes)
 
-
-# data that I measured
-fundat2 <- fundat[fundat$datcor>"2019-08-03",]
-head(fundat2)
-
+# Write file
+write_csv(NDVI_2019, "./data/NDVI_2019.csv")
 
 
