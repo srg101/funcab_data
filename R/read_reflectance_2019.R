@@ -19,13 +19,15 @@ source("R/load_packages.R")
 
 # Read in 2019 reflectance data
 # Because of Norwegian characters, use UTF-8 encoding
-fundat <- read.csv("./data/NDVI_FunCaB_2019.csv", fileEncoding = "UTF-8")
+fundat <- read.delim("./data/NDVI_FunCaB_2019.csv", fileEncoding = "UTF-8",
+                     sep = ",")
 
 # Check site names
 unique(fundat$Site)
 # Clean the site names, Norwegian language read-in issue.
-fundat$siteID <- recode(fundat$Site,
-                      'Gudmesdalen' = "Gudmedalen",
+fundat %>%
+  mutate(siteID = recode(Site, "Gudmesdalen" = "Gudmedalen"))
+,
                       'Låvisdalen' = "Lavisdalen",
                       'Rambæra' = "Rambera",
                       'Ulvehaugen' = "Ulvehaugen",
