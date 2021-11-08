@@ -146,16 +146,36 @@ fundat_wk2_3$plotID <- paste0(fundat_wk2_3$blockID,
                               fundat_wk2_3$Plot)
 unique(fundat_wk2_3$plotID)
 
+# Rename plot as Treatment
+fundat_wk2_3$Treatment <- fundat_wk2_3$Plot
+
 # For each plot we took two reflectance values, perpindicular to each other to account for the different radius for the greenseeker sensor area, and the 25cm plot size. Average these.
-fundat_wk2_3$m_ndvi <- (fundat_wk2_3$After.1+ fundat_wk2_3$After.2)/2 # average the two values
+fundat_wk2_3$m_ndvi_after <- (fundat_wk2_3$After.1+ fundat_wk2_3$After.2)/2 # average the two values
 
 # The Before cutting data
 fundat_wk2_3$m_ndvi_before <- (fundat_wk2_3$Before.1+
                                  fundat_wk2_3$Before.1)/2 # average the two values
 
 # Transform to long format so pre- and post-cut data can be allocated
+fundat_wk2_3 <- fundat_wk2_3 %>%
+  pivot_longer(
+               cols = c("m_ndvi_before", "m_ndvi_after"),
+               names_to = "pre_post_cut",
+               values_to = "m_ndvi")
+
+# Rename column for cutting
+fundat_wk2_3$pre_post_cut <- recode(fundat_wk2_3$pre_post_cut,
+                              'm_ndvi_before' = "pre_cut",
+                              'm_ndvi_after' = "post_cut")
+
+# TODO: Change the weather columsn as well to pivot longer, atm
+# It is duplicated across both before and after cuttng
 
 
+# Only select relevant columns
+NDVI_2021 <- fundat_wk2_3 %>%
+  select(siteID, blockID, plotID, Treatment, pre_post_cut,
+         date, Time, m_ndvi, notes)
 
-# Add column to specify when reflectance was taken relative to cutting
-fundat_wk2_3$pre_post_cut <- "post_cut"
+# Write file
+write_csv(NDVI_2021, "./data/NDVI_2021.csv")
